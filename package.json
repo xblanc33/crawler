@@ -1,0 +1,31 @@
+{
+  "name": "crawler",
+  "version": "1.0.0",
+  "description": "Framework for crawling",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha --exit"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xblanc33/crawler.git"
+  },
+  "author": "Xavier Blanc",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/xblanc33/crawler/issues"
+  },
+  "homepage": "https://github.com/xblanc33/crawler#readme",
+  "dependencies": {
+    "amqplib": "^0.5.2",
+    "mongodb": "^2.2.33",
+    "nightmare": "^2.10.0",
+    "optimal-select": "^4.0.1",
+    "wat_action_nightmare": "^1.0.11",
+    "winston": "^2.4.0"
+  },
+  "devDependencies": {
+    "assert": "^1.4.1",
+    "mocha": "^4.0.1"
+  }
+}
