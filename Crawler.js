@@ -16,18 +16,21 @@ class Crawler {
         this.steps = [];
     }
 
-    addStep(level, scenarioFactory, htmlAnalysis, postAnalysis) {
-        if (Number.isInteger(level)) {
-            winston.info(`Add step for level ${level}`)
-            this.steps[level] = new Step(this.name, level, scenarioFactory, htmlAnalysis, postAnalysis); 
-        } else {
-            winston.info(`cannot add step as ${level} is not an integer`)
-        }
+    addStep(step) {
+        this.steps.push(step);
+    }
+
+    addSteps(steps) {
+        this.steps = steps;
     }
 
 
     start() {
         winston.info('Crawler is launching the rabbit queues (one per level)');
+        for (let i = 0 ; i < this.steps.length ; i++) {
+            this.steps[i].setPositionInCrawl(i);
+            this.steps[i].setCrawlName(this.name);
+        }
         return amqp.connect(this.rabbit)
             .then(conn => {
                 this.conn = conn;
@@ -36,8 +39,10 @@ class Crawler {
             .then(ch => {
                 this.ch = ch;
                 this.steps.forEach(step => {step.setRabbitChannel(ch);})
-                return Promise.all(Object.keys(this.steps).map( key => {
-                    return ch.assertQueue(`${this.name}-level-${key}`,{ durable: true });
+                let indexesOfQueuesInBetween2Steps = Object.keys(this.steps); 
+                indexesOfQueuesInBetween2Steps.shift();//indexes start at 1 (not 0)
+                return Promise.all(indexesOfQueuesInBetween2Steps.map( index => {
+                    return ch.assertQueue(`${this.name}-level-${index}`,{ durable: true });
                 }));
             })
             .then( () => {
@@ -69,10 +74,9 @@ class Crawler {
 
     async consume() {
         winston.info(`consume`);
-        const levels = Object.keys(this.steps);
-        await this.crawlStep(this.steps[levels[0]], {});
-        for (let i=1 ; i < levels.length ; i++) {
-            const queue = `${this.name}-level-${levels[i]}`;
+        await this.crawlStep(this.steps[0], {});
+        for (let i=1 ; i < this.steps.length ; i++) {
+            const queue = `${this.name}-level-${i}`;
             let stop = false;
             while (!stop) {
                 let msg;
@@ -81,7 +85,7 @@ class Crawler {
                     if (msg === false) {
                         stop = true;
                     } else {
-                        await this.crawlStep(this.steps[levels[i]], JSON.parse(msg.content.toString()));
+                        await this.crawlStep(this.steps[i], JSON.parse(msg.content.toString()));
                         await this.ch.ack(msg);
                     }
                 } catch(e) {

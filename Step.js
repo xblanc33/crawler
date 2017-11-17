@@ -1,12 +1,18 @@
 const winston = require('winston');
 
 class Step {
-    constructor(crawlName, level, scenarioFactory, htmlAnalysis, postAnalysis) {
-        this.crawlName = crawlName;
-        this.level = level;
+    constructor(scenarioFactory, htmlAnalysis, postAnalysis) {
         this.scenarioFactory = scenarioFactory;
         this.htmlAnalysis = htmlAnalysis;
         this.postAnalysis = postAnalysis;
+    }
+
+    setCrawlName(crawlName) {
+        this.crawlName = crawlName;
+    }
+
+    setPositionInCrawl(position)  {
+        this.position = position;
     }
 
     setRabbitChannel(ch) {
@@ -28,7 +34,7 @@ class Step {
     }
 
     sendMessageToNextQueue(msg) {
-        return this.sendMessageToQueue(msg, `${this.crawlName}-level-${this.level+1}`);
+        return this.sendMessageToQueue(msg, `${this.crawlName}-level-${this.position+1}`);
     }
 
     sendArrayOfMessagesToQueue(msgArray, queue) {
@@ -46,7 +52,29 @@ class Step {
     }
 
     sendArrayOfMessagesToNextQueue(msg) {
-        return this.sendArrayOfMessagesToQueue(msg, `${this.crawlName}-level-${this.level+1}`);
+        return this.sendArrayOfMessagesToQueue(msg, `${this.crawlName}-level-${this.position+1}`);
+    }
+
+    save(data, col) {
+        let element = {
+            data: data
+        }
+        col = col || this.crawlName;
+        return new Promise((res , rej)=> {
+            this.db.collection(col, (err, collection) => {
+                if (err) {
+                    rej(err);
+                } else {
+                    collection.insert(element)
+                        .then( inserted => {
+                            res(inserted);
+                        })
+                        .catch( err => {
+                            rej(err);
+                        })
+                }
+            })
+        });
     }
 
 }
