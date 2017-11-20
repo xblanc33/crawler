@@ -1,7 +1,7 @@
 const winston = require('winston');
 const Nightmare = require('nightmare');
 
-const SHOW = true;
+const SHOW = false;
 const TIME_OUT = 40000;
 
 class Worker {
@@ -10,6 +10,7 @@ class Worker {
     }
 
     async start() {
+        winston.info(`Worker starts wiht task : ${this.task.inputQueue}`);
         let stop = false;
         while (!stop) {
             let msg;

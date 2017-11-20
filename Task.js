@@ -17,7 +17,6 @@ class Task {
     }
 
     sendMessageToQueue(msg, queue) {
-        winston.info(`Send Message:${JSON.stringify(msg)} to ${queue}`)
         return this.ch.assertQueue(queue,{ durable: true })
             .then( () => {
                 return this.ch.sendToQueue(queue,Buffer.from(JSON.stringify(msg)), { persistent: true });
@@ -28,11 +27,9 @@ class Task {
     }
 
     sendArrayOfMessagesToQueue(msgArray, queue) {
-        winston.info('send array of messages');
         return this.ch.assertQueue(queue,{durable: true})
             .then(async  () => {
                 for (let i=0 ; i < msgArray.length ; i++) {
-                    winston.info('send messages:'+i);
                     await this.ch.sendToQueue(queue,Buffer.from(JSON.stringify(msgArray[i])), { persistent: true });
                 }
             })

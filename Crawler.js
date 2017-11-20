@@ -73,12 +73,12 @@ class Crawler {
                 this.conn.close();
             })
             .then( () => {
-                return 'consume is done';
+                return 'crawl is finished';
             })
     }
 
     async startWorkers() {
-        winston.info(`consume`);
+        winston.info(`start all workers`);
         if (this.initialTask) {
             let initialWorker = new InitialWorker(this.initialTask);
             await initialWorker.start();
@@ -88,7 +88,7 @@ class Crawler {
             let worker = new Worker(this.tasks[i]);
             await worker.start();
         }
-        winston.info(`worker have been started`);
+        winston.info(`workers did their jobs`);
     }
 }
 
