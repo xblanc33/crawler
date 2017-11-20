@@ -1,18 +1,11 @@
 const winston = require('winston');
 
-class Step {
-    constructor(scenarioFactory, htmlAnalysis, postAnalysis) {
+class Task {
+    constructor(inputQueue, scenarioFactory, htmlAnalysis, postAnalysis) {
+        this.inputQueue = inputQueue;
         this.scenarioFactory = scenarioFactory;
         this.htmlAnalysis = htmlAnalysis;
         this.postAnalysis = postAnalysis;
-    }
-
-    setCrawlName(crawlName) {
-        this.crawlName = crawlName;
-    }
-
-    setPositionInCrawl(position)  {
-        this.position = position;
     }
 
     setRabbitChannel(ch) {
@@ -24,6 +17,7 @@ class Step {
     }
 
     sendMessageToQueue(msg, queue) {
+        winston.info(`Send Message:${JSON.stringify(msg)} to ${queue}`)
         return this.ch.assertQueue(queue,{ durable: true })
             .then( () => {
                 return this.ch.sendToQueue(queue,Buffer.from(JSON.stringify(msg)), { persistent: true });
@@ -33,12 +27,8 @@ class Step {
             })
     }
 
-    sendMessageToNextQueue(msg) {
-        return this.sendMessageToQueue(msg, `${this.crawlName}-level-${this.position+1}`);
-    }
-
     sendArrayOfMessagesToQueue(msgArray, queue) {
-        winston.info('send messages');
+        winston.info('send array of messages');
         return this.ch.assertQueue(queue,{durable: true})
             .then(async  () => {
                 for (let i=0 ; i < msgArray.length ; i++) {
@@ -51,15 +41,10 @@ class Step {
             })
     }
 
-    sendArrayOfMessagesToNextQueue(msg) {
-        return this.sendArrayOfMessagesToQueue(msg, `${this.crawlName}-level-${this.position+1}`);
-    }
-
     save(data, col) {
         let element = {
             data: data
         }
-        col = col || this.crawlName;
         return new Promise((res , rej)=> {
             this.db.collection(col, (err, collection) => {
                 if (err) {
@@ -77,6 +62,26 @@ class Step {
         });
     }
 
+    find(data, col) {
+        let element = {
+            data: data
+        }
+        return new Promise((res , rej)=> {
+            this.db.collection(col, (err, collection) => {
+                if (err) {
+                    rej(err);
+                } else {
+                    collection.findOne(element)
+                        .then( inserted => {
+                            res(inserted);
+                        })
+                        .catch( err => {
+                            rej(err);
+                        })
+                }
+            })
+        });
+    }
 }
 
-module.exports.Step = Step;
+module.exports.Task = Task;

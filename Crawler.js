@@ -3,34 +3,35 @@ const MongoClient = require('mongodb').MongoClient;
 const ObjectId = require('mongodb').ObjectID;
 const amqp = require('amqplib');
 const Nightmare = require('nightmare');
-const Step = require('./Step.js').Step;
+const Worker = require('./Worker.js').Worker;
+const InitialWorker = require('./InitialWorker.js').InitialWorker;
+const task = require('./Task.js').task;
 
-const SHOW = false;
-const TIME_OUT = 40000;
+
 
 class Crawler {
-    constructor(rabbit, mongo, name) {
+    constructor(rabbit, mongo) {
         this.rabbit = `amqp://${rabbit}`;
-        this.mongo = `mongodb://${mongo}:27017/${name}`;
-        this.name = name;
-        this.steps = [];
+        this.mongo = `mongodb://${mongo}:27017/crawler`;
+        this.tasks = [];
+        this.initialTask = undefined;
     }
 
-    addStep(step) {
-        this.steps.push(step);
+    setInitialTask(task) {
+        this.initialTask = task;
     }
 
-    addSteps(steps) {
-        this.steps = steps;
+    addTask(task) {
+        this.tasks.push(task);
+    }
+
+    addTasks(tasks) {
+        this.tasks = tasks;
     }
 
 
     start() {
-        winston.info('Crawler is launching the rabbit queues (one per level)');
-        for (let i = 0 ; i < this.steps.length ; i++) {
-            this.steps[i].setPositionInCrawl(i);
-            this.steps[i].setCrawlName(this.name);
-        }
+        winston.info('Crawler is launching the rabbit queues (one per task)');
         return amqp.connect(this.rabbit)
             .then(conn => {
                 this.conn = conn;
@@ -38,11 +39,12 @@ class Crawler {
             })
             .then(ch => {
                 this.ch = ch;
-                this.steps.forEach(step => {step.setRabbitChannel(ch);})
-                let indexesOfQueuesInBetween2Steps = Object.keys(this.steps); 
-                indexesOfQueuesInBetween2Steps.shift();//indexes start at 1 (not 0)
-                return Promise.all(indexesOfQueuesInBetween2Steps.map( index => {
-                    return ch.assertQueue(`${this.name}-level-${index}`,{ durable: true });
+                if (this.initialTask) {
+                    this.initialTask.setRabbitChannel(ch);
+                }   
+                this.tasks.forEach(task => {task.setRabbitChannel(ch);})
+                return Promise.all(this.tasks.map( task => {
+                    return ch.assertQueue(`${task.inputQueue}`,{ durable: true });
                 }));
             })
             .then( () => {
@@ -52,11 +54,14 @@ class Crawler {
                 return MongoClient.connect(this.mongo);
             })
             .then( db => {
-                this.steps.forEach(step => {step.setMongoConnection(db);})
+                if (this.initialTask) {
+                    this.initialTask.setMongoConnection(db);
+                }
+                this.tasks.forEach(task => {task.setMongoConnection(db);})
                 this.db = db;
             })
             .then( () => {
-                return this.consume();
+                return this.startWorkers();
             })
             .then( () => {
                 this.db.close();
@@ -72,42 +77,18 @@ class Crawler {
             })
     }
 
-    async consume() {
+    async startWorkers() {
         winston.info(`consume`);
-        await this.crawlStep(this.steps[0], {});
-        for (let i=1 ; i < this.steps.length ; i++) {
-            const queue = `${this.name}-level-${i}`;
-            let stop = false;
-            while (!stop) {
-                let msg;
-                try {
-                    msg = await this.ch.get(queue);
-                    if (msg === false) {
-                        stop = true;
-                    } else {
-                        await this.crawlStep(this.steps[i], JSON.parse(msg.content.toString()));
-                        await this.ch.ack(msg);
-                    }
-                } catch(e) {
-                    winston.error(e);
-                    stop = true;
-                }
-            }
+        if (this.initialTask) {
+            let initialWorker = new InitialWorker(this.initialTask);
+            await initialWorker.start();
         }
-        winston.info(`end of consume`);
-    }
 
-    async crawlStep(step, options) {
-        const browser = new Nightmare({show:SHOW, width:1800, height:1500, loadTimeout: TIME_OUT , gotoTimeout: TIME_OUT, switches:{'ignore-certificate-errors': true}});
-        let scenario = step.scenarioFactory(options);
-        return scenario.attachTo(browser)
-                .inject('js','./utils.js')
-                .inject('js','./optimal-select.js')
-                .evaluate(step.htmlAnalysis)
-                .end()
-                .then( result => {
-                    return step.postAnalysis(result,this.bd,this.ch, this.name);
-                })
+        for (let i=0 ; i < this.tasks.length ; i++) {
+            let worker = new Worker(this.tasks[i]);
+            await worker.start();
+        }
+        winston.info(`worker have been started`);
     }
 }
 
