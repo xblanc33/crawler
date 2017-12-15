@@ -1,7 +1,7 @@
 const winston = require('winston');
 const Nightmare = require('nightmare');
 
-const SHOW = false;
+const SHOW = true;
 const TIME_OUT = 40000;
 
 class Worker {
