@@ -6,8 +6,8 @@ const SHOW = true;
 const TIME_OUT = 40000;
 
 class InitialWorker extends Worker{
-    constructor(task) {
-        super(task);
+    constructor(task, proxy) {
+        super(task, proxy);
     }
 
     async start() {
@@ -15,7 +15,7 @@ class InitialWorker extends Worker{
     }
 
     async crawlMsg() {
-        const browser = new Nightmare({show:SHOW, width:1800, height:1500, loadTimeout: TIME_OUT , gotoTimeout: TIME_OUT, switches:{'ignore-certificate-errors': true}});
+        const browser = this.createBrowser();
         let scenario = this.task.scenarioFactory({});
         return scenario.attachTo(browser)
                 .inject('js','./utils.js')

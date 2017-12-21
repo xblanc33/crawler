@@ -5,8 +5,9 @@ const SHOW = true;
 const TIME_OUT = 40000;
 
 class Worker {
-    constructor(task) {
+    constructor(task, proxy = null) {
         this.task = task;
+        this.proxy = proxy;
     }
 
     async start() {
@@ -29,8 +30,16 @@ class Worker {
         }
     }
 
+    createBrowser() {
+        if (this.proxy != null)
+            return new Nightmare({show:SHOW, width:1800, height:1500, loadTimeout: TIME_OUT , gotoTimeout: TIME_OUT, switches:{'ignore-certificate-errors': true, 'proxy-server': this.proxy}});
+        else
+            return new Nightmare({show:SHOW, width:1800, height:1500, loadTimeout: TIME_OUT , gotoTimeout: TIME_OUT, switches:{'ignore-certificate-errors': true}});
+
+    }
+
     async crawlMsg(msg) {
-        const browser = new Nightmare({show:SHOW, width:1800, height:1500, loadTimeout: TIME_OUT , gotoTimeout: TIME_OUT, switches:{'ignore-certificate-errors': true}});
+        const browser = this.createBrowser();
         let scenario = this.task.scenarioFactory(msg);
         return scenario.attachTo(browser)
                 .inject('js','./utils.js')
