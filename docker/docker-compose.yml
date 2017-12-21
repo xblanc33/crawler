@@ -1,0 +1,12 @@
+
+version: '2'
+services:
+  mongo:
+    image: "mongo:3"
+    ports:
+      - "27017:27017"
+  rabbit:
+    image: "rabbitmq:3.6-management"
+    ports:
+      - "5672:5672"
+      - "15672:15672"
