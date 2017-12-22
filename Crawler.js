@@ -5,13 +5,10 @@ const amqp = require('amqplib');
 const Nightmare = require('nightmare');
 const Worker = require('./Worker.js').Worker;
 const InitialWorker = require('./InitialWorker.js').InitialWorker;
-const task = require('./Task.js').task;
-
-
 
 class Crawler {
-    constructor(rabbit, mongo) {
-        this.proxy = null;
+    constructor(rabbit, mongo, proxy = null) {
+        this.proxy = proxy;
         this.rabbit = `amqp://${rabbit}`;
         this.mongo = `mongodb://${mongo}:27017/crawler`;
         this.tasks = [];
@@ -96,7 +93,5 @@ class Crawler {
         winston.info(`workers did their jobs`);
     }
 }
-
-
 
 module.exports.Crawler = Crawler;

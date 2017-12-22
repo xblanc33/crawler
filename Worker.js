@@ -31,11 +31,15 @@ class Worker {
     }
 
     createBrowser() {
-        if (this.proxy != null)
-            return new Nightmare({show:SHOW, width:1800, height:1500, loadTimeout: TIME_OUT , gotoTimeout: TIME_OUT, switches:{'ignore-certificate-errors': true, 'proxy-server': this.proxy}});
-        else
-            return new Nightmare({show:SHOW, width:1800, height:1500, loadTimeout: TIME_OUT , gotoTimeout: TIME_OUT, switches:{'ignore-certificate-errors': true}});
+        let retBrowser;
 
+        if (this.proxy !== null)
+            retBrowser = new Nightmare({show:SHOW, width:1800, height:1500, loadTimeout: TIME_OUT , gotoTimeout: TIME_OUT, switches:{'ignore-certificate-errors': true, 'proxy-server': this.proxy}});
+        else
+            retBrowser = new Nightmare({show:SHOW, width:1800, height:1500, loadTimeout: TIME_OUT , gotoTimeout: TIME_OUT, switches:{'ignore-certificate-errors': true}});
+        if (proxy.needAuthentication())
+            retBrowser.authentication(proxy.username, proxy.password);
+        return retBrowser;
     }
 
     async crawlMsg(msg) {
