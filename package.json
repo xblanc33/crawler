@@ -4,8 +4,7 @@
   "description": "Framework for crawling",
   "main": "index.js",
   "scripts": {
-      "test": "mocha --exit",
-      "start": "node test/test.js"
+      "test": "mocha --exit"
   },
   "repository": {
     "type": "git",
