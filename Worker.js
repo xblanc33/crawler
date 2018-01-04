@@ -30,11 +30,23 @@ class Worker {
         }
     }
 
+    chooseProxy()
+    {
+        if (this.proxy.isArray())
+        {
+            return this.proxy[Math.floor(Math.random() * 100) % this.proxy.length].host;
+        }
+        else
+        {
+            return this.proxy.host;
+        }
+    }
+
     createBrowser() {
         let retBrowser;
 
         if (this.proxy !== null)
-            retBrowser = new Nightmare({show:SHOW, width:1800, height:1500, loadTimeout: TIME_OUT , gotoTimeout: TIME_OUT, switches:{'ignore-certificate-errors': true, 'proxy-server': this.proxy.host}});
+            retBrowser = new Nightmare({show:SHOW, width:1800, height:1500, loadTimeout: TIME_OUT , gotoTimeout: TIME_OUT, switches:{'ignore-certificate-errors': true, 'proxy-server': this.chooseProxy()}});
         else
             retBrowser = new Nightmare({show:SHOW, width:1800, height:1500, loadTimeout: TIME_OUT , gotoTimeout: TIME_OUT, switches:{'ignore-certificate-errors': true}});
         if (this.proxy != null && this.proxy.needAuthentication())
