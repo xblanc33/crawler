@@ -34,12 +34,15 @@ class Worker {
         let retBrowser;
 
         if (this.proxy !== null)
-            retBrowser = new Nightmare({show:SHOW, width:1800, height:1500, loadTimeout: TIME_OUT , gotoTimeout: TIME_OUT, switches:{'ignore-certificate-errors': true, 'proxy-server': this.proxy}});
+            retBrowser = new Nightmare({show:SHOW, width:1800, height:1500, loadTimeout: TIME_OUT , gotoTimeout: TIME_OUT, switches:{'ignore-certificate-errors': true, 'proxy-server': this.proxy.host}});
         else
             retBrowser = new Nightmare({show:SHOW, width:1800, height:1500, loadTimeout: TIME_OUT , gotoTimeout: TIME_OUT, switches:{'ignore-certificate-errors': true}});
-        if (proxy.needAuthentication())
-            retBrowser.authentication(proxy.username, proxy.password);
-        return retBrowser;
+        if (this.proxy != null && this.proxy.needAuthentication())
+            retBrowser.authentication(this.proxy.username, this.proxy.password);
+
+	retBrowser.useragent("Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.84 Safari/537.36");
+	
+	return retBrowser;
     }
 
     async crawlMsg(msg) {

@@ -24,7 +24,7 @@ class Proxy
 
     needAuthentication()
     {
-        return username !== "";
+        return this.username !== "";
     }
 }
 

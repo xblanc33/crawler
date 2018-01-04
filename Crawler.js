@@ -82,12 +82,12 @@ class Crawler {
     async startWorkers() {
         winston.info(`start all workers`);
         if (this.initialTask) {
-            let initialWorker = new InitialWorker(this.initialTask, proxy);
+            let initialWorker = new InitialWorker(this.initialTask, this.proxy);
             await initialWorker.start();
         }
 
         for (let i=0 ; i < this.tasks.length ; i++) {
-            let worker = new Worker(this.tasks[i], proxy);
+            let worker = new Worker(this.tasks[i], this.proxy);
             await worker.start();
         }
         winston.info(`workers did their jobs`);
