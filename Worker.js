@@ -32,13 +32,13 @@ class Worker {
 
     chooseProxy()
     {
-        if (this.proxy.isArray())
+        if (Array.isArray(this.proxy))
         {
-            return this.proxy[Math.floor(Math.random() * 100) % this.proxy.length].host;
+            return this.proxy[Math.floor(Math.random() * 100) % this.proxy.length];
         }
         else
         {
-            return this.proxy.host;
+            return this.proxy;
         }
     }
 
@@ -46,12 +46,16 @@ class Worker {
         let retBrowser;
 
         if (this.proxy !== null)
-            retBrowser = new Nightmare({show:SHOW, width:1800, height:1500, loadTimeout: TIME_OUT , gotoTimeout: TIME_OUT, switches:{'ignore-certificate-errors': true, 'proxy-server': this.chooseProxy()}});
-        else
-            retBrowser = new Nightmare({show:SHOW, width:1800, height:1500, loadTimeout: TIME_OUT , gotoTimeout: TIME_OUT, switches:{'ignore-certificate-errors': true}});
-        if (this.proxy != null && this.proxy.needAuthentication())
-            retBrowser.authentication(this.proxy.username, this.proxy.password);
+	{
+	    let proxy = this.chooseProxy();
 
+            retBrowser = new Nightmare({show:SHOW, width:1800, height:1500, loadTimeout: TIME_OUT , gotoTimeout: TIME_OUT, switches:{'ignore-certificate-errors': true, 'proxy-server': proxy.host}});
+            if (proxy.needAuthentication())
+		retBrowser.authentication(proxy.username, proxy.password);
+	}
+        else
+	    retBrowser = new Nightmare({show:SHOW, width:1800, height:1500, loadTimeout: TIME_OUT , gotoTimeout: TIME_OUT, switches:{'ignore-certificate-errors': true}});
+	
 	retBrowser.useragent("Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.84 Safari/537.36");
 	
 	return retBrowser;
