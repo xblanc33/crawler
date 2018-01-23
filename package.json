@@ -18,6 +18,7 @@
   "homepage": "https://github.com/xblanc33/crawler#readme",
   "dependencies": {
     "amqplib": "^0.5.2",
+    "electron": "^1.7.11",
     "mongodb": "^3.0.1",
     "nightmare": "^2.10.0",
     "optimal-select": "^4.0.1",
