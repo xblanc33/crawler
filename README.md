@@ -12,6 +12,15 @@ You can clone it and use npm to install its dependencies.
 
     clone https://github.com/xblanc33/crawler.git
     npm install
+
+Then You have to run docker-compose because the crawler needs RabbitMQ and MongoDB:
+
+    cd docker
+    docker-compose up --build
+
+
+Then you can run the test:
+
     npm test
 
 

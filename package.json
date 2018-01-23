@@ -4,7 +4,7 @@
   "description": "Framework for crawling",
   "main": "index.js",
   "scripts": {
-    "test": "mocha --exit"
+    "test": "mocha --timeout 30000 --exit"
   },
   "repository": {
     "type": "git",

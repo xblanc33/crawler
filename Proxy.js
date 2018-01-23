@@ -21,30 +21,25 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.*/
 
 class Proxy
 {
-    constructor(host, username = "", password = "")
-    {
+    constructor(host, username = "", password = "") {
         this.host = host;
         this.username = username;
         this.password = password;
     }
 
-    setHost(host)
-    {
+    setHost(host) {
         this.host = host;
     }
 
-    setUsername(username)
-    {
+    setUsername(username) {
         this.username = username;
     }
 
-    setPassword(password)
-    {
+    setPassword(password) {
         this.password = password;
     }
 
-    needAuthentication()
-    {
+    needAuthentication() {
         return this.username !== "";
     }
 }

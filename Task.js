@@ -25,8 +25,8 @@ class Task {
     constructor(inputQueue, scenarioFactory, htmlAnalysis, postAnalysis) {
         this.inputQueue = inputQueue;
         this.scenarioFactory = scenarioFactory;
-        this.htmlAnalysis = htmlAnalysis;
-        this.postAnalysis = postAnalysis;
+        this.htmlAnalysis = htmlAnalysis || emptyHTMLAnalysis;
+        this.postAnalysis = postAnalysis || emptyPostAnalysis;
     }
 
     setRabbitChannel(ch) {
@@ -100,6 +100,15 @@ class Task {
             })
         });
     }
+}
+
+function emptyHTMLAnalysis() {
+    return {};
+}
+
+function emptyPostAnalysis(options, result) {
+    console.log('postAnalysis is done');
+    return Promise.resolve(result || {});
 }
 
 module.exports.Task = Task;
