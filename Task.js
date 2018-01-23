@@ -107,7 +107,6 @@ function emptyHTMLAnalysis() {
 }
 
 function emptyPostAnalysis(options, result) {
-    console.log('postAnalysis is done');
     return Promise.resolve(result || {});
 }
 

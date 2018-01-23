@@ -39,8 +39,6 @@ class InitialWorker extends Worker{
     async crawlMsg() {
         const browser = this.createBrowser();
         let scenario = this.task.scenarioFactory({});
-        winston.info(`htmlAnalysis:${JSON.stringify(this.task.htmlAnalysis)}`);
-        winston.info(`postAnalysis:${JSON.stringify(this.task.postAnalysis)}`);
         return scenario.attachTo(browser)
                 .inject('js','./optimal-select.js')
                 .evaluate(this.task.htmlAnalysis)
