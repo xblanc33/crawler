@@ -4,7 +4,7 @@
   "description": "Framework for crawling",
   "main": "index.js",
   "scripts": {
-      "test": "mocha --exit"
+    "test": "mocha --exit"
   },
   "repository": {
     "type": "git",
@@ -18,7 +18,7 @@
   "homepage": "https://github.com/xblanc33/crawler#readme",
   "dependencies": {
     "amqplib": "^0.5.2",
-    "mongodb": "^2.2.33",
+    "mongodb": "^3.0.1",
     "nightmare": "^2.10.0",
     "optimal-select": "^4.0.1",
     "wat_action_nightmare": "^1.0.14",
@@ -26,6 +26,6 @@
   },
   "devDependencies": {
     "assert": "^1.4.1",
-    "mocha": "^4.0.1"
+    "mocha": "^5.0.0"
   }
 }
