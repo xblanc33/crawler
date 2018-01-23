@@ -64,7 +64,6 @@ class Worker {
 
         if (this.proxy !== null) {
 	        let proxy = this.chooseProxy();
-
             retBrowser = new Nightmare({show:SHOW, width:1800, height:1500, loadTimeout: TIME_OUT , gotoTimeout: TIME_OUT, switches:{'ignore-certificate-errors': true, 'proxy-server': proxy.host}});
             if (proxy.needAuthentication()) {
                 retBrowser.authentication(proxy.username, proxy.password);

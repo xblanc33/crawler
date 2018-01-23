@@ -11,6 +11,7 @@ Install
 You can clone it and use npm to install its dependencies.
 
     clone https://github.com/xblanc33/crawler.git
+    cd crawler
     npm install
 
 Then You have to run docker-compose because the crawler needs RabbitMQ and MongoDB:
@@ -24,34 +25,41 @@ Then you can run the test:
     npm test
 
 
+Crawler
+--------
+
+To crawl a web site, you have first to create one crawler by giving it the host name of the MongoDB and RabbitMQ servers.
+Once created, you can set if the initial crawl task to perform, and the next ones.
+Then you can ask the crawler to start !
+
+    const crawler = new Crawler('localhost','localhost');
+    crawler.setInitialTask(tasks.search);
+    crawler.addTasks([tasks.analysis]);
+    crawler.start().then(() => { done();}).catch(e => {console.log(e);});			
 
 
 Task
 ------
 
-The class you have to instantiate and give your three crawling functions.
+The crawler performs crawling tasks (initial crawl task as well as the next ones).
+A Task has a name (which also correspond to the name of its input RabbitMQ), a factory that creates scenario to crawl, a function that analyse the crawled HTML (optional), and a function that performs post treatments. 
 
-scenarioFactory(msg) should return a scenario (see [WAT](https://github.com/webautotester/action_nightmare.git) )
-htmlAnalysis will be executed by NightMareJS (see evaluate [NightmareJS](https://github.com/segmentio/nightmare) )
-postAnalysis(msg,result) will be executed afterward (result is the return of htmlAnalysis)
+Here is the Google Analysis Task (with no HTML and no Post analysis)
 
-Each Task has its queue (Rabbit) where it reads messages.
-Each message is given to scenarioFactory and postAnalysis as an input (msg).
+    analysis = new Task(
+        'analysis',
+        function(options) {
+            let scenario = new wat_action.Scenario();
+            let gotoAction;
+            winston.info(`page: ${options.href}`)
+            gotoAction = new wat_action.GotoAction(options.href);
+            scenario.addAction(gotoAction);
+            let waitAction = new wat_action.WaitAction(WAIT_TEMPO);
+            scenario.addAction(waitAction);
+            return scenario;
+        }
+    );
 
-This class also provides useful functions to interact with Rabbit and Mongo
-
-Worker
-------
-
-The worker that will execute the task
 
 
-Crawler
---------
 
-The crawler will launch the workers
-
-Docker 
-------
-
-A docker-compose for running Rabbit and Mongo

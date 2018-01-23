@@ -27,12 +27,7 @@ const winston = require('winston');
 
 
 describe('Create crawler for Google', function () {
-	/*it ('should launch the initial step and exit', function(done) {
-        const crawler = new Crawler('localhost','localhost');
-        crawler.setInitialTask(tasks.search);
-        crawler.start().then(() => { done();}).catch(e => {console.log(e);});			
-    });*/
-    it ('should launch the initial step (search) and then launch the second step (analysing)', function(done) {
+	it ('should launch the initial step (search) and then launch the second step (analysing)', function(done) {
         const crawler = new Crawler('localhost','localhost');
         crawler.setInitialTask(tasks.search);
         crawler.addTasks([tasks.analysis]);
