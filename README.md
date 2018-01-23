@@ -1,7 +1,8 @@
 JS Framework For Crawling With NightMareJS Actions
 ==================================
 
-Very simple library to crawl with [NightmareJS](https://github.com/segmentio/nightmare).
+Very simple library to crawl any web site.
+It uses [NightmareJS](https://github.com/segmentio/nightmare).
 
 
 Install
