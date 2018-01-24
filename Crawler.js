@@ -31,7 +31,8 @@ class Crawler {
     constructor(rabbit, mongo, proxy = null) {
         this.proxy = proxy;
         this.rabbit = `amqp://${rabbit}`;
-        this.mongo = `mongodb://${mongo}:27017/crawler`;
+        this.mongo = `mongodb://${mongo}:27017`;
+        this.dbName = 'crawler';
         this.tasks = [];
         this.initialTask = undefined;
     }
@@ -74,7 +75,11 @@ class Crawler {
                 this.ch.prefetch(1);
             })
             .then( () => {
-                return MongoClient.connect(this.mongo);
+                return new MongoClient.connect(this.mongo);
+            })
+            .then( client => {
+                this.client = client;
+                return client.db(this.dbName);
             })
             .then( db => {
                 if (this.initialTask) {
@@ -87,7 +92,7 @@ class Crawler {
                 return this.startWorkers();
             })
             .then( () => {
-                this.db.close();
+                this.client.close();
             })
             .then( () => {
                 this.ch.close();

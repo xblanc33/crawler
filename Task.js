@@ -59,7 +59,7 @@ class Task {
             })
     }
 
-    save(data, col) {
+    saveToMongo(data, col) {
         let element = {
             data: data
         }
@@ -80,7 +80,7 @@ class Task {
         });
     }
 
-    find(data, col) {
+    findInMongo(data, col) {
         let element = {
             data: data
         }

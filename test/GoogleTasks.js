@@ -88,6 +88,13 @@ analysis = new Task(
         scenario.addAction(waitAction);
 
         return scenario;
+    },
+    function() {
+        let html= document.body.innerHTML;
+        return html;
+    },
+    function(options, answer) {
+        return this.saveToMongo(answer,'answer');
     }
 );
 
