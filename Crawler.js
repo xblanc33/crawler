@@ -23,7 +23,6 @@ const winston = require('winston');
 const MongoClient = require('mongodb').MongoClient;
 const ObjectId = require('mongodb').ObjectID;
 const amqp = require('amqplib');
-const Nightmare = require('nightmare');
 const Worker = require('./Worker.js').Worker;
 const InitialWorker = require('./InitialWorker.js').InitialWorker;
 

@@ -78,13 +78,18 @@ class Worker {
     async crawlMsg(msg) {
         const browser = this.createBrowser();
         let scenario = this.task.scenarioFactory(msg);
-        return scenario.attachTo(browser)
-                .inject('js','./optimal-select.js')
+        let run = await scenario.run(browser, 'NIGHTMARE');
+        if (run.success) {
+            browser.inject('js','./optimal-select.js')
                 .evaluate(this.task.htmlAnalysis)
                 .end()
                 .then( result => {
                     return this.task.postAnalysis(msg, result);
                 })
+        } else {
+            return Promise.reject(run.error);
+        }
+        
     }
 }
 

@@ -20,7 +20,6 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.*/
 
 const winston = require('winston');
-const Nightmare = require('nightmare');
 const Worker = require('./Worker.js').Worker;
 
 const SHOW = true;
@@ -39,14 +38,18 @@ class InitialWorker extends Worker{
     async crawlMsg() {
         const browser = this.createBrowser();
         let scenario = this.task.scenarioFactory({});
-        return scenario.attachTo(browser)
-                .inject('js','./optimal-select.js')
-                .evaluate(this.task.htmlAnalysis)
-                .end()
-                .then( result => {
-                    winston.log('will do post analysis');
-                    return this.task.postAnalysis({},result);
-                })
+        let run = await scenario.run(browser, 'NIGHTMARE');
+        if (run.success) {
+            return browser.inject('js','./optimal-select.js')
+                    .evaluate(this.task.htmlAnalysis)
+                    .end()
+                    .then( result => {
+                        winston.log('will do post analysis');
+                        return this.task.postAnalysis({},result);
+                    })
+        } else {
+            return Promise.reject(run.error);
+        }
     }
 }
 
