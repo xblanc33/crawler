@@ -27,10 +27,14 @@ const Worker = require('./Worker.js').Worker;
 const InitialWorker = require('./InitialWorker.js').InitialWorker;
 
 class Crawler {
-    constructor(rabbit, mongo, proxy = null) {
-        this.proxy = proxy;
-        this.rabbit = `amqp://${rabbit}`;
-        this.mongo = `mongodb://${mongo}:27017`;
+    constructor(options) {
+        if ([undefined, null].includes(options.rabbit)) throw 'Rabbit server name is needed';
+        if ([undefined, null].includes(options.mongo)) throw 'Mongo server name is needed';
+
+        this.proxy = null || options.proxy;
+        this.rabbit = `amqp://${options.rabbit}`;
+        this.mongo = `mongodb://${options.mongo}:27017`;
+        this.browserKind = options.browserKind || 'NIGHTMARE';
         this.dbName = 'crawler';
         this.tasks = [];
         this.initialTask = undefined;
@@ -106,13 +110,19 @@ class Crawler {
 
     async startWorkers() {
         winston.info(`start all workers`);
+        let options = {
+            browserKind : this.browserKind,
+            proxy : this.proxy
+        }
         if (this.initialTask) {
-            let initialWorker = new InitialWorker(this.initialTask, this.proxy);
+            options.task = this.initialTask
+            let initialWorker = new InitialWorker(options);
             await initialWorker.start();
         }
 
         for (let i=0 ; i < this.tasks.length ; i++) {
-            let worker = new Worker(this.tasks[i], this.proxy);
+            options.task = this.tasks[i];
+            let worker = new Worker(options);
             await worker.start();
         }
         winston.info(`workers did their jobs`);

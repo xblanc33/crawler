@@ -26,8 +26,8 @@ const SHOW = true;
 const TIME_OUT = 40000;
 
 class InitialWorker extends Worker{
-    constructor(task, proxy) {
-        super(task, proxy);
+    constructor(options) {
+        super(options);
     }
 
     async start() {
@@ -38,7 +38,7 @@ class InitialWorker extends Worker{
     async crawlMsg() {
         const browser = this.createBrowser();
         let scenario = this.task.scenarioFactory({});
-        let run = await scenario.run(browser, 'NIGHTMARE');
+        let run = await scenario.run(browser, this.browserKind);
         if (run.success) {
             return browser.inject('js','./optimal-select.js')
                     .evaluate(this.task.htmlAnalysis)

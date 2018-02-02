@@ -26,9 +26,13 @@ const SHOW = true;
 const TIME_OUT = 40000;
 
 class Worker {
-    constructor(task, proxy = null) {
-        this.task = task;
-        this.proxy = proxy;
+    constructor(options) {
+        if ([undefined, null].includes(options.task)) throw 'Task is needed';
+        //if (options.task === undefined || options.task === null) throw "Task is needed";
+
+        this.task = options.task;
+        this.proxy = null || options.proxy;
+        this.browserKind = options.browserKind;
     }
 
     async start() {
@@ -62,14 +66,15 @@ class Worker {
     createBrowser() {
         let retBrowser;
 
-        if (this.proxy !== null) {
-	        let proxy = this.chooseProxy();
+        if ([undefined, null].includes(this.proxy)) {
+            retBrowser = new Nightmare({show:SHOW, width:1800, height:1500, loadTimeout: TIME_OUT , gotoTimeout: TIME_OUT, switches:{'ignore-certificate-errors': true}});
+	    } else {
+            let proxy = this.chooseProxy();
             retBrowser = new Nightmare({show:SHOW, width:1800, height:1500, loadTimeout: TIME_OUT , gotoTimeout: TIME_OUT, switches:{'ignore-certificate-errors': true, 'proxy-server': proxy.host}});
             if (proxy.needAuthentication()) {
                 retBrowser.authentication(proxy.username, proxy.password);
             }
-	    } else {
-            retBrowser = new Nightmare({show:SHOW, width:1800, height:1500, loadTimeout: TIME_OUT , gotoTimeout: TIME_OUT, switches:{'ignore-certificate-errors': true}});
+            
         }
 	    retBrowser.useragent("Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.84 Safari/537.36");
 	    return retBrowser;
@@ -78,7 +83,7 @@ class Worker {
     async crawlMsg(msg) {
         const browser = this.createBrowser();
         let scenario = this.task.scenarioFactory(msg);
-        let run = await scenario.run(browser, 'NIGHTMARE');
+        let run = await scenario.run(browser, this.browserKind);
         if (run.success) {
             browser.inject('js','./optimal-select.js')
                 .evaluate(this.task.htmlAnalysis)
