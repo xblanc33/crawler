@@ -32,24 +32,7 @@ class InitialWorker extends Worker{
 
     async start() {
         winston.info('InitialWorker is starting');
-        return this.crawlMsg();
-    }
-
-    async crawlMsg() {
-        const browser = this.createBrowser();
-        let scenario = this.task.scenarioFactory({});
-        let run = await scenario.run(browser, this.browserKind);
-        if (run.success) {
-            return browser.inject('js','./optimal-select.js')
-                    .evaluate(this.task.htmlAnalysis)
-                    .end()
-                    .then( result => {
-                        winston.log('will do post analysis');
-                        return this.task.postAnalysis({},result);
-                    })
-        } else {
-            return Promise.reject(run.error);
-        }
+        return await this.performMessage('');
     }
 }
 

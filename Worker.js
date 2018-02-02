@@ -36,34 +36,48 @@ class Worker {
     }
 
     async start() {
-        winston.info(`Worker starts wiht task : ${this.task.inputQueue}`);
+        winston.info(`Worker starts with task : ${this.task.inputQueue}`);
+        await this.getMessageMainLoop();
+        winston.info(`Worker ends with task : ${this.task.inputQueue}`);
+    }
+
+    async getMessageMainLoop() {
         let stop = false;
         while (!stop) {
             let msg;
-            try {
-                msg = await this.task.ch.get(this.task.inputQueue);
-                if (msg === false) {
-                    stop = true;
-                } else {
-                    await this.crawlMsg(JSON.parse(msg.content.toString()));
-                    await this.task.ch.ack(msg);
-                }
-            } catch(e) {
-                winston.error(e);
+            msg = await this.task.ch.get(this.task.inputQueue);
+            if (msg === false) {
                 stop = true;
+            } else {
+                await this.performMessage(JSON.parse(msg.content.toString()));
+                await this.task.ch.ack(msg);
             }
         }
     }
 
-    chooseProxy() {
-        if (Array.isArray(this.proxy)) {
-            return this.proxy[Math.floor(Math.random() * 100) % this.proxy.length];
+    async performMessage(msg) {
+        const browser = this.createBrowser();
+        let run = await this.runScenario(msg, browser);
+        if (run.success) {
+            let analysisResult = await this.evaluateHTMLAnalysis(browser);
+            await this.performPostAnalysis(msg, analysisResult);
         } else {
-            return this.proxy;
+            winston.error(run.error);
         }
     }
 
     createBrowser() {
+        switch (this.browserKind) {
+            case 'NIGHTMARE': 
+                return this.createNightmare();
+            case 'CHROMELESS':
+                return this.createChromeless();
+            default:
+                throw `${this.browserKind} is not supported, the worker can't create browser`;
+        }
+    }
+
+    createNightmare() {
         let retBrowser;
 
         if ([undefined, null].includes(this.proxy)) {
@@ -80,21 +94,51 @@ class Worker {
 	    return retBrowser;
     }
 
-    async crawlMsg(msg) {
-        const browser = this.createBrowser();
+    chooseProxy() {
+        if (Array.isArray(this.proxy)) {
+            return this.proxy[Math.floor(Math.random() * 100) % this.proxy.length];
+        } else {
+            return this.proxy;
+        }
+    }
+
+    createChromeless() {
+        throw `${this.browserKind} is not supported, the worker can't create browser`;
+    }
+
+
+    async runScenario(msg, browser) {   
         let scenario = this.task.scenarioFactory(msg);
         let run = await scenario.run(browser, this.browserKind);
-        if (run.success) {
-            browser.inject('js','./optimal-select.js')
-                .evaluate(this.task.htmlAnalysis)
-                .end()
-                .then( result => {
-                    return this.task.postAnalysis(msg, result);
-                })
-        } else {
-            return Promise.reject(run.error);
+        return run;
+    }
+
+    evaluateHTMLAnalysis(browser) {
+        switch (this.browserKind) {
+            case 'NIGHTMARE': 
+                return this.evaluateHTMLAnalysisWithNightmare(browser);
+            case 'CHROMELESS':
+                return this.evaluateHTMLAnalysisWithChromeless(browser);
+            default:
+                throw `${this.browserKind} is not supported, the worker can't evaluate the HTML analysis`;
         }
-        
+    }
+
+    async evaluateHTMLAnalysisWithNightmare(browser) {
+        let result = await browser
+                            .inject('js','./optimal-select.js')
+                            .evaluate(this.task.htmlAnalysis)
+                            .end();
+
+        return result;
+    }
+
+    evaluateHTMLAnalysisWithChromeless() {
+        throw `${this.browserKind} is not supported, the worker can't evaluate the HTML analysis`;
+    }
+
+    performPostAnalysis(msg, result) {
+        return this.task.postAnalysis(msg, result);
     }
 }
 
