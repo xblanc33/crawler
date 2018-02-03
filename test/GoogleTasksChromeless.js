@@ -23,13 +23,11 @@ const Task = require('../Task.js').Task;
 const wat_scenario = require('wat_scenario');
 const winston = require('winston');
 
-const WAIT_TEMPO = 4000;
-const SCROLL_X = 800;
-const SCROLL_Y = 800;
+const WAIT_TEMPO = 2000;
 
 const SEARCH_QUERY = 'github xblanc33 crawler';
-const GOOGLE_SEARCH_SELECTOR = '#sfdiv';
-const GOOGLE_SUBMIT_SELECTOR = '#tsf > div.tsf-p > div.jsb > center > input[type="submit"]:nth-child(1)';
+const GOOGLE_SEARCH_SELECTOR = 'body > center > form > table > tbody > tr > td:nth-child(2) > div > input';//CHROMELESS
+const GOOGLE_SUBMIT_SELECTOR = 'body > center > form > table > tbody > tr > td:nth-child(2) > span:nth-child(8) > span > input';//CHROMELESS
 
 
 
@@ -47,28 +45,35 @@ search = new Task(
 
 		let type = new wat_scenario.TypeAction(GOOGLE_SEARCH_SELECTOR,SEARCH_QUERY);
 		scenario.addAction(type);
-
-		let click = new wat_scenario.ClickAction(GOOGLE_SUBMIT_SELECTOR,SEARCH_QUERY);
-		scenario.addAction(click);
-
 		scenario.addAction(waitAction);
+
+		let click = new wat_scenario.ClickAction(GOOGLE_SUBMIT_SELECTOR);
+		scenario.addAction(click);
+		
 		return scenario;
 	},
 	function() {
-		const GOOGLE_ANSWERS_SELECTOR = '#rso > div > div';
-		let computeCSSSelector = window['OptimalSelect'].select;
-		let resultsChildren = document.querySelector(GOOGLE_ANSWERS_SELECTOR).children;
-		let answers = [];
+		const GOOGLE_ANSWERS_SELECTOR = '#ires > ol';
+		let ol = document.querySelector(GOOGLE_ANSWERS_SELECTOR);
+		
+		if (ol !== null) {
+			let resultsChildren = ol.children;
+			let answers = [];
 
-		for (i = 0 ; i < resultsChildren.length ; i++) {
-			let ref = resultsChildren[i].children[0].children[0].children[0].children[0];
-			let answer = {
-				href : ref.getAttribute('href'),
-				selector : computeCSSSelector(ref)
-			};
-			answers.push(answer);
+			for (i = 0 ; i < resultsChildren.length ; i++) {
+				let ref = resultsChildren[i].children[0].children[0];
+				let curiousURL = ref.getAttribute('href');
+				let googleURL = curiousURL.substring(7,curiousURL.length);
+				let trueURL = googleURL.substring(0, googleURL.indexOf('&'));
+				let answer = {
+					href : trueURL
+				};
+				answers.push(answer);
+			}
+			return answers;
+		} else {
+			return [];
 		}
-		return answers;
 	},
 	function(options, result) {
 		return this.sendArrayOfMessagesToQueue(result, 'analysis');

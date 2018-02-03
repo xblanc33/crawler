@@ -21,6 +21,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.*/
 
 const winston = require('winston');
 const Nightmare = require('nightmare');
+const { Chromeless } = require('chromeless');
 
 const SHOW = true;
 const TIME_OUT = 40000;
@@ -67,11 +68,12 @@ class Worker {
     }
 
     createBrowser() {
+        console.log(this.browserKind);
         switch (this.browserKind) {
             case 'NIGHTMARE': 
                 return this.createNightmare();
             case 'CHROMELESS':
-                return this.createChromeless();
+                return new Chromeless()
             default:
                 throw `${this.browserKind} is not supported, the worker can't create browser`;
         }
@@ -102,10 +104,6 @@ class Worker {
         }
     }
 
-    createChromeless() {
-        throw `${this.browserKind} is not supported, the worker can't create browser`;
-    }
-
 
     async runScenario(msg, browser) {   
         let scenario = this.task.scenarioFactory(msg);
@@ -133,8 +131,13 @@ class Worker {
         return result;
     }
 
-    evaluateHTMLAnalysisWithChromeless() {
-        throw `${this.browserKind} is not supported, the worker can't evaluate the HTML analysis`;
+    async evaluateHTMLAnalysisWithChromeless(browser) {
+        let result = await browser
+                            .wait(2000)
+                            .evaluate(this.task.htmlAnalysis)
+                            .end();
+
+        return result;
     }
 
     performPostAnalysis(msg, result) {

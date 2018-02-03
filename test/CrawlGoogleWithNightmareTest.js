@@ -20,7 +20,7 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.*/
 
 const Crawler = require('../Crawler.js').Crawler;
-const tasks = require('./GoogleTasks.js').tasks;
+const tasks = require('./GoogleTasksNightmare.js').tasks;
 const assert = require('assert');
 const amqp = require('amqplib');
 const winston = require('winston');
@@ -28,7 +28,7 @@ const winston = require('winston');
 
 describe('Create crawler for Google', function () {
 	it ('should launch the initial step (search) and then launch the second step (analysing)', function(done) {
-		const crawler = new Crawler({rabbit:'localhost',mongo:'localhost'});
+		const crawler = new Crawler({rabbit:'localhost',mongo:'localhost', browserKind:'NIGHTMARE'});
 		crawler.setInitialTask(tasks.search);
 		crawler.addTask(tasks.analysis);
 		crawler.start().then(() => { done();}).catch(e => {console.log(e);});			
