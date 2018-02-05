@@ -22,6 +22,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.*/
 const winston = require('winston');
 const Nightmare = require('nightmare');
 const { Chromeless } = require('chromeless');
+const puppeteer = require('puppeteer');
 
 const SHOW = true;
 const TIME_OUT = 40000;
@@ -57,7 +58,8 @@ class Worker {
     }
 
     async performMessage(msg) {
-        const browser = this.createBrowser();
+        const browserObject =  await this.createBrowser();
+        const browser = browserObject.browser;
         let run = await this.runScenario(msg, browser);
         if (run.success) {
             let analysisResult = await this.evaluateHTMLAnalysis(browser);
@@ -67,17 +69,21 @@ class Worker {
         }
     }
 
-    createBrowser() {
-        console.log(this.browserKind);
+    async createBrowser() {
         switch (this.browserKind) {
             case 'NIGHTMARE': 
-                return this.createNightmare();
+                let nightmare = this.createNightmare();
+                return {browser:nightmare};
             case 'CHROMELESS':
-                return new Chromeless()
+                return {browser:new Chromeless()};
+            case 'PUPPETEER':
+                let pupp = await this.createPuppeteer();
+                return {browser:pupp};
             default:
                 throw `${this.browserKind} is not supported, the worker can't create browser`;
         }
     }
+ 
 
     createNightmare() {
         let retBrowser;
@@ -92,8 +98,8 @@ class Worker {
             }
             
         }
-	    retBrowser.useragent("Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.84 Safari/537.36");
-	    return retBrowser;
+        retBrowser.useragent("Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.84 Safari/537.36");
+        return retBrowser;
     }
 
     chooseProxy() {
@@ -103,6 +109,13 @@ class Worker {
             return this.proxy;
         }
     }
+
+    async createPuppeteer() {
+        const browser = await puppeteer.launch({headless: false});
+        const page = await browser.newPage();
+        return page;
+    }
+
 
 
     async runScenario(msg, browser) {   
@@ -117,6 +130,8 @@ class Worker {
                 return this.evaluateHTMLAnalysisWithNightmare(browser);
             case 'CHROMELESS':
                 return this.evaluateHTMLAnalysisWithChromeless(browser);
+            case 'PUPPETEER':
+                return this.evaluateHTMLAnalysisWithPuppeteer(browser);
             default:
                 throw `${this.browserKind} is not supported, the worker can't evaluate the HTML analysis`;
         }
@@ -137,6 +152,12 @@ class Worker {
                             .evaluate(this.task.htmlAnalysis)
                             .end();
 
+        return result;
+    }
+
+    async evaluateHTMLAnalysisWithPuppeteer(browser) {
+        let result = await browser.evaluate(this.task.htmlAnalysis);
+        await browser.close();
         return result;
     }
 

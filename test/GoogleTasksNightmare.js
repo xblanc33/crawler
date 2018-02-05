@@ -58,7 +58,7 @@ search = new Task(
 		let resultsChildren = document.querySelector(GOOGLE_ANSWERS_SELECTOR).children;
 		let answers = [];
 
-		for (i = 0 ; i < resultsChildren.length ; i++) {
+		for (i = 0 ; i < resultsChildren.length/3 ; i++) {
 			let ref = resultsChildren[i].children[0].children[0].children[0].children[0];
 			let answer = {
 				href : ref.getAttribute('href'),

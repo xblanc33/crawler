@@ -21,13 +21,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.*/
 
 const Crawler = require('../Crawler.js').Crawler;
 const tasks = require('./GoogleTasksChromeless.js').tasks;
-const assert = require('assert');
-const amqp = require('amqplib');
-const winston = require('winston');
 
 
 describe('Create crawler for Google', function () {
-	it.only ('should launch the initial step (search) and then launch the second step (analysing)', function(done) {
+	it('should launch the initial step (search) and then launch the second step (analysing)', function(done) {
 		const crawler = new Crawler({rabbit:'localhost',mongo:'localhost', browserKind:'CHROMELESS'});
 		crawler.setInitialTask(tasks.search);
 		crawler.addTask(tasks.analysis);
