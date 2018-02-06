@@ -156,6 +156,7 @@ class Worker {
     }
 
     async evaluateHTMLAnalysisWithPuppeteer(browser) {
+        await browser.addScriptTag({path:'./optimal-select.js'})
         let result = await browser.evaluate(this.task.htmlAnalysis);
         await browser.close();
         return result;
