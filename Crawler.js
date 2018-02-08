@@ -34,7 +34,6 @@ class Crawler {
         this.proxy = null || options.proxy;
         this.rabbit = `amqp://${options.rabbit}`;
         this.mongo = `mongodb://${options.mongo}:27017`;
-        this.browserKind = options.browserKind || 'NIGHTMARE';
         this.dbName = 'crawler';
         this.tasks = [];
         this.initialTask = undefined;
@@ -111,7 +110,6 @@ class Crawler {
     async startWorkers() {
         winston.info(`start all workers`);
         let options = {
-            browserKind : this.browserKind,
             proxy : this.proxy
         }
         if (this.initialTask) {

@@ -24,7 +24,7 @@
     "nightmare": "^2.10.0",
     "optimal-select": "^4.0.1",
     "puppeteer": "^1.0.0",
-    "wat_scenario": "^1.0.3",
+    "wat_scenario": "^1.0.5",
     "winston": "^2.4.0"
   },
   "devDependencies": {

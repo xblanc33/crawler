@@ -23,7 +23,7 @@ const Task = require('../Task.js').Task;
 const wat_scenario = require('wat_scenario');
 const winston = require('winston');
 
-const WAIT_TEMPO = 2000;
+const WAIT_TEMPO = 4000;
 
 const SEARCH_QUERY = 'github xblanc33 crawler';
 const GOOGLE_SEARCH_SELECTOR = '#lst-ib';//CHROMIUM

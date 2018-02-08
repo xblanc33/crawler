@@ -20,8 +20,6 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.*/
 
 const winston = require('winston');
-const Nightmare = require('nightmare');
-const { Chromeless } = require('chromeless');
 const puppeteer = require('puppeteer');
 
 const SHOW = true;
@@ -58,49 +56,36 @@ class Worker {
     }
 
     async performMessage(msg) {
-        const browserObject =  await this.createBrowser();
-        const browser = browserObject.browser;
-        let run = await this.runScenario(msg, browser);
+        const page =  await this.createPage();
+        winston.info(`page:${page}`)
+        let run = await this.runScenario(page, msg);
         if (run.success) {
-            let analysisResult = await this.evaluateHTMLAnalysis(browser);
+            let analysisResult = await this.evaluateHTMLAnalysis(page);
             await this.performPostAnalysis(msg, analysisResult);
         } else {
             winston.error(run.error);
         }
     }
 
-    async createBrowser() {
-        switch (this.browserKind) {
-            case 'NIGHTMARE': 
-                let nightmare = this.createNightmare();
-                return {browser:nightmare};
-            case 'CHROMELESS':
-                return {browser:new Chromeless()};
-            case 'PUPPETEER':
-                let pupp = await this.createPuppeteer();
-                return {browser:pupp};
-            default:
-                throw `${this.browserKind} is not supported, the worker can't create browser`;
-        }
-    }
- 
-
-    createNightmare() {
-        let retBrowser;
-
+    async createPage() {
+        let browser;
+        let page;
         if ([undefined, null].includes(this.proxy)) {
-            retBrowser = new Nightmare({show:SHOW, width:1800, height:1500, loadTimeout: TIME_OUT , gotoTimeout: TIME_OUT, switches:{'ignore-certificate-errors': true}});
-	    } else {
+            browser = await puppeteer.launch({headless: false, args:['--no-sandbox']});
+        } else {
+            let proxyServerArg;
             let proxy = this.chooseProxy();
-            retBrowser = new Nightmare({show:SHOW, width:1800, height:1500, loadTimeout: TIME_OUT , gotoTimeout: TIME_OUT, switches:{'ignore-certificate-errors': true, 'proxy-server': proxy.host}});
             if (proxy.needAuthentication()) {
-                retBrowser.authentication(proxy.username, proxy.password);
+                proxyServerArg = `${proxy.host}:${proxy.username}:${proxy.password}`;
+            } else {
+                proxyServerArg = proxy.host;
             }
-            
+            browser = await puppeteer.launch({headless: false, args:['--no-sandbox', `--proxy-server=${proxyServerArg}`]});
         }
-        retBrowser.useragent("Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.84 Safari/537.36");
-        return retBrowser;
+        page = await browser.newPage();
+        return page;
     }
+   
 
     chooseProxy() {
         if (Array.isArray(this.proxy)) {
@@ -110,55 +95,20 @@ class Worker {
         }
     }
 
-    async createPuppeteer() {
-        const browser = await puppeteer.launch({headless: false});
-        const page = await browser.newPage();
-        return page;
-    }
 
-
-
-    async runScenario(msg, browser) {   
+    async runScenario(page, msg) {
+        winston.info(`runScenario: ${page}, ${JSON.stringify(msg)}`);
         let scenario = this.task.scenarioFactory(msg);
-        let run = await scenario.run(browser, this.browserKind);
+        winston.info(`scenario: ${JSON.stringify(scenario)}`);
+        let run = await scenario.run(page);
+        winston.info(`run: ${JSON.stringify(run)}`);
         return run;
     }
 
-    evaluateHTMLAnalysis(browser) {
-        switch (this.browserKind) {
-            case 'NIGHTMARE': 
-                return this.evaluateHTMLAnalysisWithNightmare(browser);
-            case 'CHROMELESS':
-                return this.evaluateHTMLAnalysisWithChromeless(browser);
-            case 'PUPPETEER':
-                return this.evaluateHTMLAnalysisWithPuppeteer(browser);
-            default:
-                throw `${this.browserKind} is not supported, the worker can't evaluate the HTML analysis`;
-        }
-    }
-
-    async evaluateHTMLAnalysisWithNightmare(browser) {
-        let result = await browser
-                            .inject('js','./optimal-select.js')
-                            .evaluate(this.task.htmlAnalysis)
-                            .end();
-
-        return result;
-    }
-
-    async evaluateHTMLAnalysisWithChromeless(browser) {
-        let result = await browser
-                            .wait(2000)
-                            .evaluate(this.task.htmlAnalysis)
-                            .end();
-
-        return result;
-    }
-
-    async evaluateHTMLAnalysisWithPuppeteer(browser) {
-        await browser.addScriptTag({path:'./optimal-select.js'})
-        let result = await browser.evaluate(this.task.htmlAnalysis);
-        await browser.close();
+    async evaluateHTMLAnalysis(page) {
+        await page.addScriptTag({path:'./optimal-select.js'})
+        let result = await page.evaluate(this.task.htmlAnalysis);
+        await page.close();
         return result;
     }
 
