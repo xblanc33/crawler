@@ -25,7 +25,7 @@ const tasks = require('./GoogleTasksPuppeteer.js').tasks;
 
 describe('Create crawler for Google', function () {
 	it('should launch the initial step (search) and then launch the second step (analysing)', function(done) {
-		const crawler = new Crawler({rabbit:'localhost',mongo:'localhost', browserKind:'PUPPETEER'});
+		const crawler = new Crawler({rabbit:'localhost',mongo:'localhost'});
 		crawler.setInitialTask(tasks.search);
 		crawler.addTask(tasks.analysis);
 		crawler.start().then(() => { done();}).catch(e => {console.log(e);});			
