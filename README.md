@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/xblanc33/crawler.svg?branch=master)](https://travis-ci.org/xblanc33/crawler)
+
 JS Framework For Web Scrapping 
 ================================
 
