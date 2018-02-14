@@ -29,11 +29,9 @@ const SEARCH_QUERY = 'github xblanc33 crawler';
 const GOOGLE_SEARCH_SELECTOR = '#lst-ib';//CHROMIUM
 const GOOGLE_SUBMIT_SELECTOR = '#tsf > div.tsf-p > div.jsb > center > input[type="submit"]:nth-child(1)';//CHROMIUM
 
-
-
-search = new Task(
-	'search',
-	function(options) {
+let search = new Task({
+	inputQueue : 'search',
+	scenarioFactory : function(options) {
 		let scenario = new wat_scenario.Scenario();
 		let gotoAction;
 		winston.info('page: google root');
@@ -52,8 +50,8 @@ search = new Task(
 		scenario.addAction(waitAction);
 		
 		return scenario;
-	},
-	function() {
+	}, 
+	htmlAnalysis : function() {
 		const GOOGLE_ANSWERS_SELECTOR = '#rso > div > div';
 		let div = document.querySelector(GOOGLE_ANSWERS_SELECTOR);
 		
@@ -73,15 +71,15 @@ search = new Task(
 		} else {
 			return [];
 		}
-	},
-	function(options, result) {
+	}, 
+	postAnalysis : function(options, result) {
 		return this.sendArrayOfMessagesToQueue(result, 'analysis');
 	}
-);
+});
 
-analysis = new Task(
-	'analysis',
-	function(options) {
+let analysis = new Task({
+	inputQueue : 'analysis',
+	scenarioFactory : function(options) {
 		let scenario = new wat_scenario.Scenario();
 		let gotoAction;
 		winston.info(`page: ${options.href}`);
@@ -93,14 +91,14 @@ analysis = new Task(
 
 		return scenario;
 	},
-	function() {
+	htmlAnalysis : function() {
 		let html= document.body.innerHTML;
 		return html;
 	},
-	function(options, answer) {
+	postAnalysis : function(options, answer) {
 		return this.saveToMongo(answer,'answer');
 	}
-);
+});
 
 module.exports.tasks = {
 	search : search,

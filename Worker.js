@@ -106,7 +106,7 @@ class Worker {
     }
 
     async evaluateHTMLAnalysis(page) {
-        await page.addScriptTag({path:'./optimal-select.js'})
+        await page.addScriptTag({path:'./optimal-select.js'});
         let result = await page.evaluate(this.task.htmlAnalysis);
         await page.close();
         return result;

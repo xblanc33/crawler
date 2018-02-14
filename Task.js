@@ -22,11 +22,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.*/
 const winston = require('winston');
 
 class Task {
-    constructor(inputQueue, scenarioFactory, htmlAnalysis, postAnalysis) {
-        this.inputQueue = inputQueue;
-        this.scenarioFactory = scenarioFactory;
-        this.htmlAnalysis = htmlAnalysis || emptyHTMLAnalysis;
-        this.postAnalysis = postAnalysis || emptyPostAnalysis;
+    constructor(options) {//inputQueue, scenarioFactory, htmlAnalysis, postAnalysis) {
+        this.inputQueue = options.inputQueue;
+        this.scenarioFactory = options.scenarioFactory;
+        this.htmlAnalysis = options.htmlAnalysis || emptyHTMLAnalysis;
+        this.postAnalysis = options.postAnalysis || emptyPostAnalysis;
     }
 
     setRabbitChannel(ch) {

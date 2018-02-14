@@ -11,7 +11,7 @@
     "url": "git+https://github.com/xblanc33/crawler.git"
   },
   "author": "Xavier Blanc",
-  "license": "ISC",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/xblanc33/crawler/issues"
   },
@@ -21,7 +21,7 @@
     "mongodb": "^3.0.1",
     "optimal-select": "^4.0.1",
     "puppeteer": "^1.0.0",
-    "wat_scenario": "^1.0.5",
+    "wat_scenario": "^1.0.6",
     "winston": "^2.4.0"
   },
   "devDependencies": {
