@@ -57,6 +57,11 @@ class Worker {
 
     async performMessage(msg) {
         const page =  await this.createPage();
+        await page.evaluateOnNewDocument(() => {
+            Object.defineProperty(navigator, 'webdriver', {
+              get: () => false,
+            });
+        });
         winston.info(`page:${page}`)
         let run = await this.runScenario(page, msg);
         if (run.success) {
